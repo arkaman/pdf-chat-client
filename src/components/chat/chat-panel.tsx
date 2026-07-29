@@ -27,31 +27,51 @@ export function ChatPanel() {
             timestamp: new Date(),
         };
 
-        setMessages((prev) => [...prev, userMessage]);
+        const pendingId = crypto.randomUUID();
+
+        const pendingMessage: ChatMessage = {
+            id: pendingId,
+            role: "assistant",
+            content: "Thinking...",
+            timestamp: new Date(),
+            pending: true,
+        };
+
+        setMessages((prev) => [
+            ...prev,
+            userMessage,
+            pendingMessage,
+        ]);
 
         try {
             const response = await ask(text);
 
-            const assistantMessage: ChatMessage = {
-                id: crypto.randomUUID(),
-                role: "assistant",
-                content: response.answer,
-                timestamp: new Date(),
-            };
-
-            setMessages((prev) => [...prev, assistantMessage]);
+            setMessages((prev) =>
+                prev.map((message) =>
+                    message.id === pendingId
+                        ? {
+                            ...message,
+                            content: response.answer,
+                            pending: false,
+                        }
+                        : message
+                )
+            );
         } catch (error) {
-            const assistantMessage: ChatMessage = {
-                id: crypto.randomUUID(),
-                role: "assistant",
-                content:
-                    error instanceof Error
-                        ? `❌ ${error.message}`
-                        : "❌ Something went wrong.",
-                timestamp: new Date(),
-            };
-
-            setMessages((prev) => [...prev, assistantMessage]);
+            setMessages((prev) =>
+                prev.map((message) =>
+                    message.id === pendingId
+                        ? {
+                            ...message,
+                            content:
+                                error instanceof Error
+                                    ? `${error.message}`
+                                    : "Something went wrong.",
+                            pending: false,
+                        }
+                        : message
+                )
+            );
         }
     }
 

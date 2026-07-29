@@ -1,4 +1,4 @@
-import { Bot, User } from "lucide-react";
+import { Bot, LoaderCircle, User } from "lucide-react";
 
 import type { ChatMessage as ChatMessageType } from "./types";
 
@@ -19,7 +19,13 @@ export function ChatMessage({ message }: Props) {
     return (
         <Message align={isUser ? "end" : "start"}>
             <MessageAvatar>
-                {isUser ? <User size={30} /> : <Bot size={30} />}
+                {isUser ? (
+                    <User size={30} />
+                ) : message.pending ? (
+                    <LoaderCircle className="size-6 animate-spin" />
+                ) : (
+                    <Bot size={30} />
+                )}
             </MessageAvatar>
 
             <MessageContent>
