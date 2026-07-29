@@ -7,6 +7,7 @@ import { EmptyUpload } from "./components/empty-upload";
 import { UploadAttachments } from "./components/upload-attachments";
 
 import { useUpload } from "./hooks/use-upload";
+import { useDeleteDocument } from "./hooks/use-delete-document";
 import { ChatPanel } from "./components/chat/chat-panel";
 
 export interface UploadedDocument {
@@ -19,6 +20,8 @@ export function App() {
   const { upload, loading } = useUpload();
 
   const [documents, setDocuments] = useState<UploadedDocument[]>([]);
+
+  const { remove } = useDeleteDocument();
 
   async function handleUpload(file: File) {
     const metadata = await upload(file);
@@ -33,8 +36,20 @@ export function App() {
     ]);
   }
 
-  function handleRemove(id: string) {
-    setDocuments((prev) => prev.filter((doc) => doc.id !== id));
+  async function handleRemove(id: string) {
+    const document = documents.find((doc) => doc.id === id);
+
+    if (!document) return;
+
+    try {
+      await remove(document.metadata.filename);
+
+      setDocuments((prev) =>
+        prev.filter((doc) => doc.id !== id)
+      );
+    } catch (error) {
+      console.error(error);
+    }
   }
 
   return (

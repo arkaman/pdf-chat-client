@@ -13,3 +13,8 @@ export interface ChatRequest {
 export interface ChatResponse {
     answer: string;
 }
+
+export interface DeleteResponse {
+    message: string;
+    filename: string;
+}

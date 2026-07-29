@@ -3,6 +3,7 @@ import type {
     ChatRequest,
     ChatResponse,
     UploadResponse,
+    DeleteResponse,
 } from "./types";
 
 export async function uploadPdf(file: File) {
@@ -26,4 +27,13 @@ export async function chat(question: string) {
             question,
         } satisfies ChatRequest),
     });
+}
+
+export async function deletePdf(filename: string) {
+    return apiFetch<DeleteResponse>(
+        `/documents/${encodeURIComponent(filename)}`,
+        {
+            method: "DELETE",
+        }
+    );
 }
