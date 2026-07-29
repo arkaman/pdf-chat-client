@@ -1,6 +1,15 @@
-import { FileText, XIcon } from "lucide-react";
+import { useRef } from "react";
+import type { ChangeEvent } from "react";
+import {
+    CirclePlus,
+    FileText,
+    XIcon,
+} from "lucide-react";
 
-import type { UploadResponse } from "@/api/types";
+import type { UploadedDocument } from "@/App";
+
+import { Button } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/spinner";
 
 import {
     Attachment,
@@ -13,53 +22,109 @@ import {
     AttachmentTitle,
 } from "@/components/ui/attachment";
 
-interface UploadedDocument {
-    file: File;
-    metadata: UploadResponse;
-}
-
 interface UploadAttachmentsProps {
-    document: UploadedDocument;
+    documents: UploadedDocument[];
+    loading: boolean;
+    onUpload: (file: File) => Promise<void>;
+    onRemove: (id: string) => void;
 }
 
 export function UploadAttachments({
-    document,
+    documents,
+    loading,
+    onUpload,
+    onRemove,
 }: UploadAttachmentsProps) {
-    const { file, metadata } = document;
+    const inputRef = useRef<HTMLInputElement>(null);
+
+    async function handleChange(
+        event: ChangeEvent<HTMLInputElement>
+    ) {
+        const file = event.target.files?.[0];
+
+        if (!file) return;
+
+        try {
+            await onUpload(file);
+        } finally {
+            event.target.value = "";
+        }
+    }
 
     return (
-        <div className="mx-auto flex w-full max-w-md flex-col gap-4 p-6">
+        <div className="flex h-full flex-col gap-6 p-6">
+            <div className="flex items-center justify-between">
+                <h2 className="text-lg font-semibold">
+                    Documents
+                </h2>
+
+                <>
+                    <input
+                        ref={inputRef}
+                        hidden
+                        type="file"
+                        accept=".pdf,application/pdf"
+                        onChange={handleChange}
+                    />
+
+                    <Button
+                        size="sm"
+                        disabled={loading}
+                        onClick={() => inputRef.current?.click()}
+                    >
+                        {loading ? (
+                            <>
+                                <Spinner className="mr-2 size-4" />
+                                Uploading...
+                            </>
+                        ) : (
+                            <>
+                                <CirclePlus className="mr-2 size-4" />
+                                Upload PDF
+                            </>
+                        )}
+                    </Button>
+                </>
+            </div>
+
             <AttachmentGroup>
-                <Attachment>
-                    <AttachmentMedia className="min-h-full">
-                        <FileText />
-                    </AttachmentMedia>
+                {documents.map((document) => (
+                    <Attachment key={document.id}>
+                        <AttachmentMedia className="min-h-full">
+                            <FileText />
+                        </AttachmentMedia>
 
-                    <AttachmentContent>
-                        <AttachmentTitle>{file.name}</AttachmentTitle>
+                        <AttachmentContent>
+                            <AttachmentTitle>
+                                {document.file.name}
+                            </AttachmentTitle>
 
-                        <AttachmentDescription>
-                            {(file.size / 1024 / 1024).toFixed(2)} MB
-                        </AttachmentDescription>
+                            <AttachmentDescription>
+                                {(document.file.size / 1024 / 1024).toFixed(2)} MB
+                            </AttachmentDescription>
 
-                        <AttachmentDescription>
-                            {metadata.characters.toLocaleString()} characters •{" "}
-                            {metadata.chunks} chunks
-                        </AttachmentDescription>
+                            <AttachmentDescription>
+                                {document.metadata.characters.toLocaleString()} characters •{" "}
+                                {document.metadata.chunks} chunks
+                            </AttachmentDescription>
 
-                        <AttachmentDescription>
-                            {metadata.indexed
-                                ? "Indexed successfully"
-                                : "Not indexed"}
-                        </AttachmentDescription>
-                    </AttachmentContent>
+                            <AttachmentDescription>
+                                {document.metadata.indexed
+                                    ? "Indexed successfully"
+                                    : "Not indexed"}
+                            </AttachmentDescription>
+                        </AttachmentContent>
 
-                    <AttachmentActions>
-                        <AttachmentAction aria-label="Remove PDF">
-                            <XIcon />
-                        </AttachmentAction>
-                    </AttachmentActions>
-                </Attachment>
+                        <AttachmentActions>
+                            <AttachmentAction
+                                aria-label="Remove PDF"
+                                onClick={() => onRemove(document.id)}
+                            >
+                                <XIcon />
+                            </AttachmentAction>
+                        </AttachmentActions>
+                    </Attachment>
+                ))}
             </AttachmentGroup>
         </div>
     );

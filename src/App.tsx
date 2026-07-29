@@ -1,13 +1,15 @@
 import { useState } from "react";
 
+import type { UploadResponse } from "./api/types";
+
 import { AppHeader } from "./components/app-header";
 import { EmptyUpload } from "./components/empty-upload";
 import { UploadAttachments } from "./components/upload-attachments";
 
 import { useUpload } from "./hooks/use-upload";
-import type { UploadResponse } from "./api/types";
 
-interface UploadedDocument {
+export interface UploadedDocument {
+  id: string;
   file: File;
   metadata: UploadResponse;
 }
@@ -15,15 +17,23 @@ interface UploadedDocument {
 export function App() {
   const { upload, loading } = useUpload();
 
-  const [document, setDocument] = useState<UploadedDocument | null>(null);
+  const [documents, setDocuments] = useState<UploadedDocument[]>([]);
 
   async function handleUpload(file: File) {
     const metadata = await upload(file);
 
-    setDocument({
-      file,
-      metadata,
-    });
+    setDocuments((prev) => [
+      ...prev,
+      {
+        id: crypto.randomUUID(),
+        file,
+        metadata,
+      },
+    ]);
+  }
+
+  function handleRemove(id: string) {
+    setDocuments((prev) => prev.filter((doc) => doc.id !== id));
   }
 
   return (
@@ -31,13 +41,20 @@ export function App() {
       <AppHeader />
 
       <div className="flex min-h-0 flex-1 flex-col md:flex-row">
-        <div className="flex w-full min-w-0 items-center justify-center border-r border-b md:w-1/2 md:border-b-0">
-          {document ? (
-            <UploadAttachments document={document} />
+        <div className="w-full min-w-0 border-r border-b md:w-1/2 md:border-b-0">
+          {documents.length === 0 ? (
+            <div className="flex h-full items-center justify-center">
+              <EmptyUpload
+                loading={loading}
+                onUpload={handleUpload}
+              />
+            </div>
           ) : (
-            <EmptyUpload
+            <UploadAttachments
+              documents={documents}
               loading={loading}
               onUpload={handleUpload}
+              onRemove={handleRemove}
             />
           )}
         </div>

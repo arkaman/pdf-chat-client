@@ -57,8 +57,7 @@ export function EmptyUpload({
                 <EmptyTitle>No Uploads Yet</EmptyTitle>
 
                 <EmptyDescription>
-                    You haven't uploaded any PDFs yet. Upload one to start
-                    chatting with it.
+                    Upload a PDF to start chatting with your documents.
                 </EmptyDescription>
             </EmptyHeader>
 
