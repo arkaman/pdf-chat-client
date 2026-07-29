@@ -1,5 +1,9 @@
 import { apiFetch } from "./client";
-import type { UploadResponse } from "./types";
+import type {
+    ChatRequest,
+    ChatResponse,
+    UploadResponse,
+} from "./types";
 
 export async function uploadPdf(file: File) {
     const formData = new FormData();
@@ -9,5 +13,17 @@ export async function uploadPdf(file: File) {
     return apiFetch<UploadResponse>("/upload", {
         method: "POST",
         body: formData,
+    });
+}
+
+export async function chat(question: string) {
+    return apiFetch<ChatResponse>("/chat", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+            question,
+        } satisfies ChatRequest),
     });
 }

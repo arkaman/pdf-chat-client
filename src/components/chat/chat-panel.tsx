@@ -4,7 +4,11 @@ import { ChatHistory } from "./chat-history";
 import { ChatInput } from "./chat-input";
 import type { ChatMessage } from "./types";
 
+import { useChat } from "@/hooks/use-chat";
+
 export function ChatPanel() {
+    const { ask, loading } = useChat();
+
     const [messages, setMessages] = useState<ChatMessage[]>([
         {
             id: crypto.randomUUID(),
@@ -14,8 +18,6 @@ export function ChatPanel() {
             timestamp: new Date(),
         },
     ]);
-
-    const [loading, setLoading] = useState(false);
 
     async function handleSend(text: string) {
         const userMessage: ChatMessage = {
@@ -27,28 +29,37 @@ export function ChatPanel() {
 
         setMessages((prev) => [...prev, userMessage]);
 
-        setLoading(true);
+        try {
+            const response = await ask(text);
 
-        // Temporary mock response
-        await new Promise((resolve) => setTimeout(resolve, 1000));
+            const assistantMessage: ChatMessage = {
+                id: crypto.randomUUID(),
+                role: "assistant",
+                content: response.answer,
+                timestamp: new Date(),
+            };
 
-        const assistantMessage: ChatMessage = {
-            id: crypto.randomUUID(),
-            role: "assistant",
-            content:
-                "This is a placeholder response.",
-            timestamp: new Date(),
-        };
+            setMessages((prev) => [...prev, assistantMessage]);
+        } catch (error) {
+            const assistantMessage: ChatMessage = {
+                id: crypto.randomUUID(),
+                role: "assistant",
+                content:
+                    error instanceof Error
+                        ? `❌ ${error.message}`
+                        : "❌ Something went wrong.",
+                timestamp: new Date(),
+            };
 
-        setMessages((prev) => [...prev, assistantMessage]);
-
-        setLoading(false);
+            setMessages((prev) => [...prev, assistantMessage]);
+        }
     }
 
     return (
         <div className="flex h-full flex-col">
             <div className="border-b px-6 py-4">
                 <h2 className="text-lg font-heading font-semibold">Chat</h2>
+
                 <p className="text-sm text-muted-foreground">
                     Ask questions about your uploaded PDFs.
                 </p>

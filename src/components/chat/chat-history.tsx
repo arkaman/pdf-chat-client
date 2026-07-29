@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 import { MessageGroup } from "@/components/ui/message";
@@ -10,6 +11,14 @@ interface Props {
 }
 
 export function ChatHistory({ messages }: Props) {
+    const bottomRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        bottomRef.current?.scrollIntoView({
+            behavior: "smooth",
+        });
+    }, [messages]);
+
     return (
         <ScrollArea className="h-full">
             <MessageGroup className="space-y-6 p-6">
@@ -19,6 +28,8 @@ export function ChatHistory({ messages }: Props) {
                         message={message}
                     />
                 ))}
+
+                <div ref={bottomRef} />
             </MessageGroup>
         </ScrollArea>
     );
