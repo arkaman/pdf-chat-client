@@ -7,6 +7,7 @@ import { EmptyUpload } from "./components/empty-upload";
 import { UploadAttachments } from "./components/upload-attachments";
 
 import { useUpload } from "./hooks/use-upload";
+import { ChatPanel } from "./components/chat/chat-panel";
 
 export interface UploadedDocument {
   id: string;
@@ -60,7 +61,7 @@ export function App() {
         </div>
 
         <div className="w-full min-w-0 md:w-1/2">
-          Chat area
+          <ChatPanel />
         </div>
       </div>
     </div>
